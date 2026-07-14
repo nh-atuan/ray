@@ -125,8 +125,8 @@ class FunASRModel:
                 with tempfile.NamedTemporaryFile(
                     suffix=suffix, delete=False
                 ) as audio_file:
-                    audio_file.write(audio)
                     audio_paths.append(audio_file.name)
+                    audio_file.write(audio)
 
             results = model.generate(
                 input=audio_paths,
