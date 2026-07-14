@@ -128,14 +128,31 @@ class FunASRModel:
                     audio_paths.append(audio_file.name)
                     audio_file.write(audio)
 
-            results = model.generate(
-                input=audio_paths,
-                language=[language or "auto" for language in languages],
-                use_itn=True,
-                batch_size_s=60,
-                merge_vad=True,
-                merge_length_s=15,
-            )
+            requests_by_language = {}
+            for request_index, (audio_path, language) in enumerate(
+                zip(audio_paths, languages)
+            ):
+                requests_by_language.setdefault(language or "auto", []).append(
+                    (request_index, audio_path)
+                )
+
+            indexed_results = []
+            for language, requests in requests_by_language.items():
+                batch_results = model.generate(
+                    input=[audio_path for _, audio_path in requests],
+                    language=language,
+                    use_itn=True,
+                    batch_size_s=60,
+                    merge_vad=True,
+                    merge_length_s=15,
+                )
+                indexed_results.extend(
+                    (request_index, result)
+                    for (request_index, _), result in zip(requests, batch_results)
+                )
+
+            indexed_results.sort(key=lambda indexed_result: indexed_result[0])
+            results = [result for _, result in indexed_results]
         finally:
             for audio_path in audio_paths:
                 with contextlib.suppress(FileNotFoundError):
