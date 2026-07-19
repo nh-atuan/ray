@@ -50,9 +50,7 @@ class OpenAICompatibleIngress:
         if response_format not in {"json", "text", "verbose_json"}:
             raise HTTPException(
                 status_code=400,
-                detail=(
-                    "response_format must be one of: json, text, verbose_json"
-                ),
+                detail=("response_format must be one of: json, text, verbose_json"),
             )
 
         audio_bytes = await file.read()
